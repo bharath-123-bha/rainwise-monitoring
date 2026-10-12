@@ -1,0 +1,380 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>RainWise | Rainwater Harvesting Monitor</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+
+  <style>
+    .feature-panel { margin-bottom: 22px; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field label { font-size: 12px; font-weight: 700; }
+    .field input, .field select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #dce7dc;
+      border-radius: 8px;
+      background: #fff;
+      color: #203629;
+      font: inherit;
+    }
+    .primary-btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 17px;
+      background: #287b45;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary-btn:hover { background: #185b35; }
+    .result-box {
+      background: #eff7ed;
+      padding: 16px;
+      margin-top: 16px;
+      border-radius: 10px;
+      color: #185b35;
+      line-height: 1.7;
+    }
+    .result-box strong { font-size: 23px; }
+    .table-wrap { width: 100%; overflow-x: auto; }
+    .records-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .records-table th, .records-table td {
+      padding: 12px 9px;
+      border-bottom: 1px solid #e6ece5;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .records-table th { background: #f3f8f1; color: #185b35; }
+    .records-table button { cursor: pointer; }
+    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .message { font-size: 12px; margin-top: 12px; }
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-icon">💧</span> RainWise</div>
+
+    <p class="side-label">MAIN MENU</p>
+    <a class="nav active" href="#overview">▦ &nbsp; Dashboard</a>
+    <a class="nav" href="#analytics">▥ &nbsp; Analytics</a>
+    <a class="nav" href="#calculator">🧮 &nbsp; Calculator</a>
+    <a class="nav" href="#records">📋 &nbsp; Water Records</a>
+    <a class="nav" href="#alerts">♧ &nbsp; Alerts</a>
+    <a class="nav" href="#about">ⓘ &nbsp; About Project</a>
+
+    <div class="eco-card">
+      <span>🌱</span>
+      <h3>Every drop counts!</h3>
+      <p>Save water today for a greener tomorrow.</p>
+    </div>
+
+    <p class="sidebar-foot">SMART WATER MANAGEMENT</p>
+  </aside>
+
+  <main class="main-content" id="overview">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">WATER CONSERVATION SYSTEM</p>
+        <h1>Rainwater Dashboard</h1>
+        <p class="muted">Monitor your harvest. Make every drop count.</p>
+      </div>
+      <div class="status">
+        <span class="status-dot"></span> Demo Mode
+      </div>
+    </header>
+
+    <section class="welcome">
+      <div>
+        <p class="welcome-tag">🌿 SUSTAINABLE LIVING</p>
+        <h2>Welcome to RainWise</h2>
+        <p>Track rainfall, monitor storage and discover how much water you save.</p>
+        <a href="#analytics" class="welcome-btn">View Analytics ↗</a>
+      </div>
+      <div class="rain-art" aria-hidden="true">🌦️</div>
+    </section>
+
+    <!-- Dashboard cards -->
+    <section class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-top"><span>Rainfall Today</span><span>🌧️</span></div>
+        <div class="stat-value"><span id="rainfall">24</span><small> mm</small></div>
+        <p class="stat-note">Simulated daily rainfall</p>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-top"><span>Water Collected</span><span>💧</span></div>
+        <div class="stat-value"><span id="collected">2,400</span><small> L</small></div>
+        <p class="stat-note">Sample collection data</p>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-top"><span>Tank Capacity</span><span>🛢️</span></div>
+        <div class="stat-value"><span id="tank-percent">75</span><small>%</small></div>
+        <div class="progress"><div id="tank-progress" style="width:75%"></div></div>
+        <p class="stat-note"><span id="tank-litres">3,750</span> of 5,000 L stored</p>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-top"><span>Water Used</span><span>🚿</span></div>
+        <div class="stat-value"><span id="used">650</span><small> L</small></div>
+        <p class="stat-note">Sample daily usage</p>
+      </article>
+    </section>
+
+    <!-- Charts and tank -->
+    <section class="content-grid" id="analytics">
+      <article class="panel">
+        <div class="panel-heading">
+          <div>
+            <h3>Rainfall Overview</h3>
+            <p class="muted">Sample rainfall for the last 7 days</p>
+          </div>
+          <span class="pill">Last 7 days</span>
+        </div>
+        <div class="chart-wrap"><canvas id="rainChart"></canvas></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading">
+          <div>
+            <h3>Water Tank</h3>
+            <p class="muted">Simulated storage level</p>
+          </div>
+        </div>
+
+        <div class="tank-visual">
+          <div class="tank">
+            <div class="tank-water" id="tank-water" style="height:75%"></div>
+            <div class="tank-mark mark1">100%</div>
+            <div class="tank-mark mark2">75%</div>
+            <div class="tank-mark mark3">50%</div>
+            <div class="tank-mark mark4">25%</div>
+          </div>
+
+          <div class="tank-reading">
+            <strong><span id="tank-reading">3,750</span> L</strong>
+            <span>Available water</span>
+            <span class="tank-condition" id="tank-condition">Good storage level</span>
+          </div>
+        </div>
+
+        <div class="tank-footer">
+          <span>Capacity: 5,000 L</span>
+          <span id="free-space">1,250 L free</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="bottom-grid">
+      <article class="panel">
+        <div class="panel-heading">
+          <div>
+            <h3>Water Usage</h3>
+            <p class="muted">Collected vs used water</p>
+          </div>
+        </div>
+        <div class="chart-wrap usage-chart"><canvas id="usageChart"></canvas></div>
+      </article>
+
+      <article class="panel" id="alerts">
+        <div class="panel-heading">
+          <div>
+            <h3>System Alerts</h3>
+            <p class="muted">Sample monitoring notifications</p>
+          </div>
+          <span class="alert-count">0</span>
+        </div>
+
+        <div class="alert-item">
+          <span class="alert-symbol amber">!</span>
+          <div>
+            <strong>Rainfall recorded (simulated)</strong>
+            <p>24 mm of simulated rainfall.</p>
+            <small>Demo reading</small>
+          </div>
+        </div>
+
+        <div class="alert-item">
+          <span class="alert-symbol green">✓</span>
+          <div>
+            <strong>Tank level normal</strong>
+            <p>Estimated storage is 75%.</p>
+            <small>Demo reading</small>
+          </div>
+        </div>
+
+        <button class="outline-btn" id="refresh-btn" type="button">
+          ↻ Refresh Sample Data
+        </button>
+      </article>
+    </section>
+
+    <!-- Rainwater calculator -->
+    <section class="panel feature-panel" id="calculator">
+      <div class="panel-heading">
+        <div>
+          <h3>🧮 Rainwater Collection Calculator</h3>
+          <p class="muted">Estimate harvestable rainwater from your roof.</p>
+        </div>
+        <span class="pill">Water estimator</span>
+      </div>
+
+      <form id="calculatorForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="roofArea">Roof area (m²)</label>
+            <input id="roofArea" type="number" min="0.01" step="any"
+              placeholder="e.g. 100" required>
+          </div>
+
+          <div class="field">
+            <label for="rainfallAmount">Rainfall (mm)</label>
+            <input id="rainfallAmount" type="number" min="0" step="any"
+              placeholder="e.g. 24" required>
+          </div>
+
+          <div class="field">
+            <label for="runoffCoefficient">Collection efficiency</label>
+            <select id="runoffCoefficient">
+              <option value="0.8">80% — Typical estimate</option>
+              <option value="0.9">90% — Efficient collection</option>
+              <option value="0.6">60% — Lower efficiency</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="primary-btn" type="submit">Calculate Water</button>
+          <button class="outline-btn" type="reset" style="width:auto;margin:0">
+            Clear
+          </button>
+        </div>
+      </form>
+
+      <div class="result-box" id="calculationResult" aria-live="polite">
+        Enter your roof area and rainfall to calculate estimated water collection.
+      </div>
+      <p class="muted">
+        Formula: Roof area × rainfall × collection efficiency.
+        Actual collection varies with roof material and water losses.
+      </p>
+    </section>
+
+    <!-- Add water record -->
+    <section class="panel feature-panel" id="records">
+      <div class="panel-heading">
+        <div>
+          <h3>📋 Add Water Record</h3>
+          <p class="muted">Enter sample or manually observed readings.</p>
+        </div>
+        <span class="pill">Local browser storage</span>
+      </div>
+
+      <form id="recordForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="recordDate">Date</label>
+            <input type="date" id="recordDate" required>
+          </div>
+
+          <div class="field">
+            <label for="recordRainfall">Rainfall (mm)</label>
+            <input type="number" id="recordRainfall" min="0" step="any"
+              placeholder="e.g. 24" required>
+          </div>
+
+          <div class="field">
+            <label for="recordCollected">Water collected (L)</label>
+            <input type="number" id="recordCollected" min="0" step="any"
+              placeholder="e.g. 500" required>
+          </div>
+
+          <div class="field">
+            <label for="recordUsed">Water used (L)</label>
+            <input type="number" id="recordUsed" min="0" step="any"
+              placeholder="e.g. 100" required>
+          </div>
+
+          <div class="field">
+            <label for="recordNotes">Notes</label>
+            <input type="text" id="recordNotes" maxlength="200"
+              placeholder="e.g. Rain after 4 PM">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="primary-btn" type="submit">Save Water Record</button>
+          <button class="outline-btn" id="clearForm" type="button"
+            style="width:auto;margin:0">Clear Form</button>
+        </div>
+        <p class="message" id="recordMessage" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- Records table -->
+    <section class="panel feature-panel">
+      <div class="panel-heading">
+        <div>
+          <h3>Recent Water Records</h3>
+          <p class="muted">Records saved in this browser.</p>
+        </div>
+        <button class="outline-btn" id="clearAllRecords" type="button"
+          style="width:auto;margin:0">Clear All</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="records-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Rainfall</th>
+              <th>Collected</th>
+              <th>Used</th>
+              <th>Notes</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="recordsTableBody">
+            <tr>
+              <td colspan="6" style="text-align:center;padding:20px">
+                Loading records...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel about-panel" id="about">
+      <h3>About RainWise</h3>
+      <p>
+        RainWise is a rainwater harvesting monitoring website prototype.
+        It demonstrates rainfall tracking, tank storage estimates, water
+        usage charts, manual water records and roof collection calculations.
+        This version uses simulated data and browser local storage.
+        Live sensor integration can be added in a future version.
+      </p>
+    </section>
+
+    <footer>
+      © 2026 RainWise · Smart Rainwater Harvesting Monitoring System
+    </footer>
+  </main>
+</body>
+</html>
